@@ -1,0 +1,86 @@
+objectType jinx("Jinx")
+{
+    walkSpeed 1;
+    speechColour 128, 128, 128;
+}
+
+sub jinxAnim()
+{
+    var n = 5;
+    
+    var sit = anim('data/black-cat.duc',
+        # sit
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        # blink
+        wait(4, n), wait(5, n), wait(6, n), wait(7, n), wait(2, n), wait(1, n),
+        # sit
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        wait(0, n), wait(1, n), wait(2, n), wait(3, n), wait(2, n), wait(1, n),
+        # blink
+        wait(4, n), wait(5, n), wait(6, n), wait(7, n), wait(2, n), wait(1, n),
+        # paw up
+        wait(24, n), wait(25, n), wait(26, n),
+        # lick
+        wait(27, n), wait(28, n), wait(29, n), wait(30, n),
+        wait(27, n), wait(28, n), wait(29, n), wait(30, n),
+        wait(27, n), wait(28, n), wait(29, n), wait(30, n),
+        wait(27, n), wait(28, n), wait(29, n), wait(30, n),
+        # paw down
+        wait(26, n), wait(25, n), wait(24, 10)
+        );
+   
+    n = 3;
+    
+    var walk_E = anim('data/black-cat.duc', 
+        wait(-12, n),
+        wait(-13, n),
+        wait(-14, n),
+        wait(-15, n)
+        );
+        
+    var walk_W = anim('data/black-cat.duc', 
+        wait(12, n), 
+        wait(13, n), 
+        wait(14, n), 
+        wait(15, n)
+        );
+
+    var walk_N = anim('data/black-cat.duc', 
+        wait(16, n), 
+        wait(17, n), 
+        wait(18, n), 
+        wait(19, n)
+        );
+        
+    var walk_S = anim('data/black-cat.duc', 
+        wait(20, n), 
+        wait(21, n), 
+        wait(22, n), 
+        wait(23, n)
+        );
+    
+    var talk_E = sit;
+    var talk_W = sit;
+    var talk_N = sit;
+    var talk_S = sit;
+    
+    return costume(
+    sit,
+    sit,
+    sit,
+    sit,
+    walk_S,
+    walk_W,
+    walk_N,
+    walk_E,
+    talk_S,
+    talk_W,
+    talk_N,
+    talk_E
+    );
+    
+}
+

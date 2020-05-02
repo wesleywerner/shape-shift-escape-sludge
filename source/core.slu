@@ -1,0 +1,795 @@
+#           _       _           _     
+#      __ _| | ___ | |__   __ _| |___ 
+#     / _` | |/ _ \| '_ \ / _` | / __|
+#    | (_| | | (_) | |_) | (_| | \__ \
+#     \__, |_|\___/|_.__/ \__,_|_|___/
+#     |___/                           
+
+
+# Game dimensions
+var SCREEN_W = 170;
+var SCREEN_H = 96;
+
+# Transition effect when warping between rooms
+var WarpTransitionsOn = TRUE;
+
+var DEBUG = FALSE;
+
+# The inventory bar position
+var INVENTORY_Y = 85;
+
+# Tracks when to Ignore user clicks
+var IgnoreUserClicks = FALSE;
+
+# Used to pass query icons for inventory items.
+var InventoryIcon;
+
+# Stores the inventory item the player is holding.
+var heldItem;
+
+# Cursors
+var HIDE_CURSOR = 0;
+var POINT_CURSOR = 1;
+var LOOK_CURSOR = 2;
+var TALK_CURSOR = 3;
+var HAND_CURSOR = 4;
+var WAIT_CURSOR = 5;
+var INV_CURSOR = 6;
+
+# Stores the current cursor mode.
+var cursorMode = HIDE_CURSOR;
+
+# Stores the current and last rooms.
+var currentRoom;
+var previousRoom;
+
+# Store the player's last position on room exit.
+var egoExitX = 0;
+var egoExitY = 0;
+
+# Inventory
+var Inventory = newStack ();
+
+
+#     _       _ _   
+#    (_)_ __ (_) |_ 
+#    | | '_ \| | __|
+#    | | | | | | |_ 
+#    |_|_| |_|_|\__|
+
+
+sub init ()
+{
+
+    # Main Entry Point
+    # ______________________________________________________
+    
+    setFont ('data/sd-reverse-generation-font.duc', "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜabcdefghijklmnopqrstuvwxyzäöü01234567890.,:!?\"*/\\'^-()% " , 6);
+    onLeftMouse (messMouseLeftClick);
+    onKeyboard (messKeyPressed);
+    onFocusChange (messFocusChanged);
+    setSpeechSpeed (200);
+    messWarp (startRoom);
+}
+
+
+#     _ __ ___   ___  _   _ ___  ___ 
+#    | '_ ` _ \ / _ \| | | / __|/ _ \
+#    | | | | | | (_) | |_| \__ \  __/
+#    |_| |_| |_|\___/ \__,_|___/\___|
+
+
+sub messMouseLeftClick ()
+{
+    # Handles left mouse clicks
+    # ______________________________________________________
+    
+    var mouseX = getMouseX ();
+    var mouseY = getMouseY ();
+
+    # Ignoring user clicks allows skipping speech
+    if (IgnoreUserClicks == TRUE)
+    {
+        completeTimers ();
+        skipSpeech ();
+        return;
+    }
+    
+    var obj = getOverObject ();
+    if (obj)
+    {
+        var objY = getObjectY(obj);
+    
+        # This is an inventory item
+        if (objY > INVENTORY_Y + 1)
+        {
+            
+            # Ignore inventory clicks if something is speaking
+            if (somethingSpeaking ()) return;
+            
+            # When already holding an item
+            if (cursorMode == INV_CURSOR)
+            {
+                
+                # if they are the same item, put it back.
+                if (heldItem == obj)
+                {
+                    messCursor (POINT_CURSOR);
+                    return;
+                }
+
+                # use the held inventory item on another inventory item.
+                else if (fetchEvent (heldItem, obj))
+                {
+                    messCursor (POINT_CURSOR);
+                    callEvent (heldItem, obj);
+                    return;
+                }
+
+                # Action the held item on the hovered inventory item.
+                else if (fetchEvent (obj, heldItem))
+                {
+                    callEvent (obj, heldItem);
+                    return;
+                }
+            }
+            
+            # Hold the inventory item
+            heldItem = obj;
+            callEvent (getIcon, obj);
+            messCursor (INV_CURSOR);
+            playSound ('data/inventory-pick.wav');
+            return;
+        }
+        
+        # walk to the object, unless it is the room exit regions, then walk to the mouse.
+        if (obj == messLeftExitRegion || 
+            obj == messRightExitRegion ||
+            obj == messTopExitRegion ||
+            obj == messBottomExitRegion
+            )
+        {
+            moveCharacter (ego, mouseX, mouseY);
+        }
+        else
+        {
+            moveCharacter (ego, obj);
+        }
+        
+        # use inventory item on the object
+        if (cursorMode == INV_CURSOR)
+        {
+            if (fetchEvent (heldItem, obj))
+            {
+                callEvent (heldItem, obj);
+                return;
+            }
+        }
+            
+        # interact with the object
+        if (fetchEvent (lookAt, obj))
+            callEvent (lookAt, obj);
+        else if (fetchEvent (talkTo, obj))
+            callEvent (talkTo, obj);
+        else if (fetchEvent (takeIt, obj))
+            callEvent (takeIt, obj);
+        else if (fetchEvent (default, obj))
+            callEvent (default, obj);
+    }
+    else
+    {
+        
+        # This is an empty space in the inventory bar.
+        # Put the held item back.
+        if (mouseY > INVENTORY_Y + 1)
+        {
+            if (cursorMode == INV_CURSOR)
+                messCursor (POINT_CURSOR);
+            return;
+        }
+        
+        # do not walk over the inventory bar
+        mouseY = mouseY < INVENTORY_Y ? mouseY : INVENTORY_Y;
+
+        # move ego
+        moveCharacter (ego, mouseX, mouseY);
+        
+    }
+}
+
+
+sub messFocusChanged (obj)
+{
+
+    # Called on mouse focus change.
+    # Changes the mouse cursor and status text when over objects.
+    # ______________________________________________________
+    
+    if (IgnoreUserClicks)
+    {
+    
+        messCursor (WAIT_CURSOR);
+        statusText ("");
+        
+    }
+    else
+    {
+    
+        # Show the name of the object under focus.
+        statusText(obj ? obj : "");
+        
+        # Avoid changing cursors if an inventory item is held.
+        if (cursorMode != INV_CURSOR)
+        {
+            
+            # If the object under focus...
+            if (obj)
+            {
+            
+                # Can be looked at:
+                if (fetchEvent (lookAt, obj))
+                    messCursor (LOOK_CURSOR);
+                    
+                # Can be spoken to:
+                else if (fetchEvent (talkTo, obj))
+                    messCursor (TALK_CURSOR);
+                    
+                # Can be taken:
+                else if (fetchEvent (takeIt, obj))
+                    messCursor (HAND_CURSOR);
+                    
+            }
+            else
+            {
+            
+                # Default to pointer.
+                messCursor (POINT_CURSOR);
+                
+            }
+        }
+        else if (obj)
+        {
+            # Show "use object with this" status
+            statusText("Use " + heldItem + " with " + obj);
+        }
+    }
+}
+
+
+#     _              _                         _ 
+#    | | _____ _   _| |__   ___   __ _ _ __ __| |
+#    | |/ / _ \ | | | '_ \ / _ \ / _` | '__/ _` |
+#    |   <  __/ |_| | |_) | (_) | (_| | | | (_| |
+#    |_|\_\___|\__, |_.__/ \___/ \__,_|_|  \__,_|
+#              |___/                             
+
+
+sub messKeyPressed (k) 
+{
+
+    # Handles keyboard key presses.
+    # ______________________________________________________
+    
+    if (k == "ESCAPE") quitGame ();
+    if (k == "s") saveGame ("saved.gam");
+    if (k == "l") loadGame ("saved.gam");
+    
+    # DEBUGGER
+    if (DEBUG)
+    {
+        if (k == "b") showBoxes ();
+        if (k == "f") showFloor ();
+        
+        # warp to rooms
+        if (k == "0")
+        {
+            if (currentRoom = cellRoom)
+            {
+                messWarp (failedRoom);
+            }
+        }
+        if (k == "1")
+        {
+            messWarp (cellRoom);
+        }
+        if (k == "2")
+        {
+            messWarp (hallway);
+        }
+        if (k == "4")
+        {
+            egoShape = "GUARD";
+            messWarp (labRoom);
+        }
+        if (k == "5")
+        {
+            egoShape = "GUARD";
+            messWarp (securityRoom);
+        }
+        if (k == "6")
+        {
+            firstStoreVisit = FALSE;
+            scientistReceivedReport = TRUE;
+            egoShape = "GUARD";
+            messWarp (storeRoom);
+        }
+        if (k == "7")
+        {
+            firstStoreVisit = FALSE;
+            scientistReceivedReport = TRUE;
+            egoShape = "SCIENTIST";
+            messWarp (labRoom);
+        }
+        if (k == "8")
+        {
+            firstStoreVisit = FALSE;
+            scientistReceivedReport = TRUE;
+            messTake (knockoutGas);
+            egoShape = "GUARD";
+            messWarp (securityRoom);
+        }
+                                
+        # give things
+        if (k == "a")
+        {
+           if (currentRoom == cellRoom)
+            {
+                messTake (cementDust);
+                openCellDoor ();
+            }
+        }
+    }
+}
+
+
+sub messCursor (mode)
+{
+
+    # Set the mouse cursor to one of the cursor modes.
+    # ______________________________________________________
+    
+    cursorMode = mode;
+    
+    if (isCharacter (waitIcon))
+        removeCharacter (waitIcon);
+        
+    if (mode == HIDE_CURSOR)
+        setCursor (NULL);
+        
+    if (mode == POINT_CURSOR)
+        setCursor (anim ('data/small-cursor.duc', 0));
+        
+    if (mode == LOOK_CURSOR)
+        setCursor (anim ('data/small-cursor.duc', 1));
+        
+    if (mode == TALK_CURSOR)
+        setCursor (anim ('data/small-cursor.duc', 2));
+        
+    if (mode == HAND_CURSOR)
+        setCursor (anim ('data/small-cursor.duc', 3));
+        
+    if (mode == WAIT_CURSOR)
+    {
+        addCharacter (waitIcon, 164, 90, anim('data/small-cursor.duc', wait(4, 10), wait(5, 10), wait(6, 10)) );
+        setCharacterExtra (waitIcon, ICON);
+        setCursor (NULL);
+        #setCursor (anim ('data/small-cursor.duc', wait(4, 10), wait(5, 10), wait(6, 10)));
+    }
+        
+    if (mode == INV_CURSOR)
+    {
+        setCursor (InventoryIcon);
+    }
+}
+
+
+sub messBusy ()
+{
+    # Busy mode.
+    # Hides the mouse cursor, shows a busy icon, and skips dialogue and animations on mouse click.
+    # ______________________________________________________
+    
+    IgnoreUserClicks = TRUE;
+    
+    if (somethingSpeaking ())
+    {
+        skipSpeech ();
+    }
+
+    messCursor (WAIT_CURSOR);
+    statusText ("");
+}
+
+
+sub messResume ()
+{
+    # Resume play.
+    # Show the mouse cursor and set status text if hovering on something.
+    # ______________________________________________________
+    
+    IgnoreUserClicks = FALSE;
+    messFocusChanged (getOverObject ());
+}
+
+
+#                              _             
+#    __      ____ _ _ __ _ __ (_)_ __   __ _ 
+#    \ \ /\ / / _` | '__| '_ \| | '_ \ / _` |
+#     \ V  V / (_| | |  | |_) | | | | | (_| |
+#      \_/\_/ \__,_|_|  | .__/|_|_| |_|\__, |
+#                       |_|            |___/ 
+#    
+
+
+sub messWarp (room)
+{
+    if (room == NULL) return;
+    
+    # Remember the room
+    previousRoom = currentRoom;
+    currentRoom = room;
+    
+    # Remember ego's position
+    if (isCharacter (ego))
+    {
+        egoExitX = getObjectX (ego);
+        egoExitY = getObjectY (ego);
+        messFlip ();
+    }
+    
+    # Set the busy mode on.
+    messBusy ();
+
+    # Warp transition effect (screen is blacked out)
+    if (WarpTransitionsOn)
+    {
+        transitionMode (BLINDS);
+        for (var b = 255; b > 0; b -= 10)
+        {
+           transitionLevel (b);
+           pause (1);
+        }
+    }
+    
+    # Remove objects and status bars
+	removeAllCharacters ();
+	removeAllScreenRegions ();
+
+	# Remove the floor and z-buffer
+	setFloor (NULL);
+	setZBuffer (NULL);
+	
+	# Continues any functions paused using the pause function
+	completeTimers ();
+
+    setScale(0, 0);
+    
+    addStatus ();
+    
+    # Warp!
+    if (room) room();
+}
+
+
+sub messFlip ()
+{
+
+    # Flip Ego's exit position to the opposite side.
+    # Triggered if within 10% of the screen boundary.
+    # ______________________________________________________
+
+    var horzEdge = SCREEN_W / 10;
+    var vertEdge = SCREEN_H / 10;
+    
+    if (egoExitX < horzEdge) 
+        egoExitX = SCREEN_W;
+    else if (egoExitX > SCREEN_W - horzEdge)
+        egoExitX = 0;
+    
+    if (egoExitY < vertEdge)
+        egoExitY = SCREEN_H;
+    else if (egoExitY > SCREEN_H - vertEdge)
+        egoExitY = 0
+}
+
+
+sub messShow ()
+{
+    # Show the screen.
+    # Use the warp transition effect if enabled.
+    # Has no effect if warp transition is turned off.
+    # ______________________________________________________
+    
+    if (WarpTransitionsOn)
+    {
+        for (var a = 0; a < 255; a += 10)
+        {
+           transitionLevel (a);
+           pause (1);
+        }
+        transitionLevel (256);
+    }
+}
+
+
+sub messAddExits (messLeftExitRoomPtr, messTopExitRoomPtr, messRightExitRoomPtr, messBottomExitRoomPtr)
+{
+    # Adds exit regions to the stage that trigger room warping.
+    # ______________________________________________________
+    
+    # Edges sized at n% of the screen
+    var horzEdge = 5;
+    var vertEdge = 5;
+    
+    if (messLeftExitRoomPtr)
+    {
+        messLeftExitRoom = messLeftExitRoomPtr;
+        addScreenRegion (messLeftExitRegion, 0, 0, horzEdge, SCREEN_H, 0, 0, WEST);
+    }
+    
+    if (messTopExitRoomPtr)
+    {
+        messTopExitRoom = messTopExitRoomPtr;
+        addScreenRegion (messTopExitRegion, 0, 0, SCREEN_W, vertEdge, 0, 0, NORTH);
+    }
+    
+    if (messBottomExitRoomPtr)
+    {
+        messBottomExitRoom = messBottomExitRoomPtr;
+        addScreenRegion (messBottomExitRegion, 0, INVENTORY_Y - vertEdge, SCREEN_W, INVENTORY_Y, 0, 0, SOUTH);
+    }
+
+    if (messRightExitRoomPtr)
+    {
+        messRightExitRoom = messRightExitRoomPtr;
+        addScreenRegion (messRightExitRegion, SCREEN_W - horzEdge, 0, SCREEN_W, SCREEN_H, 0, 0, EAST);
+    }
+
+}
+
+
+#     _                      _                   
+#    (_)_ ____   _____ _ __ | |_ ___  _ __ _   _ 
+#    | | '_ \ \ / / _ \ '_ \| __/ _ \| '__| | | |
+#    | | | | \ V /  __/ | | | || (_) | |  | |_| |
+#    |_|_| |_|\_/ \___|_| |_|\__\___/|_|   \__, |
+#                                          |___/ 
+#    
+
+
+sub messTake (item)
+{
+
+    # Take an inventory item and Redraw the display.
+    # ______________________________________________________
+    
+#    moveToCharacter (ego, item);
+    
+    # Remove the item from the stage
+    removeCharacter (item);
+    
+    # Add it to our inventory list
+    pushToStack (Inventory, item);
+    
+    # Remove the current inventory items from the screen
+    var inventoryCopy = copyStack (Inventory);    
+	while (inventoryCopy)
+    {
+        var inventoryItem = popFromStack (inventoryCopy);
+        removeCharacter (inventoryItem);
+    }
+    
+    # Draw the updated inventory items on stage
+    messShowInventory ();
+    
+    playSound ('data/take.wav');
+}
+
+
+sub messDrop (item)
+{
+    # Drop an inventory item.
+    # ______________________________________________________    
+
+    # Remove the item from the stage and the Inventory
+    removeCharacter (item);
+    deleteFromStack (Inventory, item);
+
+    # Reset the cursor
+    messCursor (POINT_CURSOR);
+
+    # Draw the updated inventory items on stage
+    messShowInventory ();
+}
+
+
+sub messShowInventory ()
+{
+
+    # Draw the inventory on screen.
+    # ______________________________________________________
+    
+    addOverlay('data/inventory-bar.png', 0, INVENTORY_Y);
+    
+    # place inventory items
+    var x = 10;
+	var y = 93;
+    
+    # work with a copy of the inventory stack
+    var invDisplay = copyStack(Inventory);
+    
+	while (invDisplay)
+    {
+        var thisItem = popFromStack (invDisplay);
+		callEvent (getIcon, thisItem);
+		addCharacter (thisItem, x, y, InventoryIcon);
+		setCharacterExtra (thisItem, ICON + RECTANGULAR);
+		x += 16;
+	}
+}
+
+
+#           __  __           _       
+#      ___ / _|/ _| ___  ___| |_ ___ 
+#     / _ \ |_| |_ / _ \/ __| __/ __|
+#    |  __/  _|  _|  __/ (__| |_\__ \
+#     \___|_| |_|  \___|\___|\__|___/
+
+
+sub messTuneOut ()
+{
+    # Adds static to the screen
+    # ______________________________________________________
+    
+    transitionMode (TVSTATIC);
+    for (var b = 255; b > 0; b -= 10)
+    {
+       transitionLevel (b);
+       pause (1);
+    }
+}
+
+
+sub messTuneIn ()
+{
+    # Removes static from the screen
+    # ______________________________________________________
+    
+    for (var a = 0; a < 255; a += 10)
+    {
+       transitionLevel (a);
+       pause (1);
+    }
+    transitionLevel (256);
+}
+
+
+# sub uiMaterializeCharacter (chr)
+# {
+#     # materialize a character on screen with a glowing effect
+# 
+#     setCharacterColourise (chr, 255, 255, 255, 164);
+#     pause(10);
+#     
+#     for(var i=250; i>0; i=i-10)
+#     {
+#         setCharacterColourise (chr, i, i, i, 128);
+#         pause(1);
+#     }
+#     setCharacterColourise (chr, 0, 0, 0, 0);
+# }
+
+
+
+#                                                  _   
+#    _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
+#   | '_ ` _ \ / _ \ \ / / _ \ '_ ` _ \ / _ \ '_ \| __|
+#   | | | | | | (_) \ V /  __/ | | | | |  __/ | | | |_ 
+#   |_| |_| |_|\___/ \_/ \___|_| |_| |_|\___|_| |_|\__|
+#   
+
+
+sub moveToCharacter (first, second)
+{
+    # Move first character to second character.
+    # The built-in moveCharacter function only supports walking to
+    # regions.
+    # ______________________________________________________
+    
+    if (isCharacter(first) && isCharacter(second)) 
+    {
+        var x = getObjectX (second);
+        var y = getObjectY (second);
+        moveCharacter (first, x, y);
+    
+    }
+
+}
+
+#                _   _               _                         
+#      __ _  ___| |_(_) ___  _ __   | |_ _   _ _ __   ___  ___ 
+#     / _` |/ __| __| |/ _ \| '_ \  | __| | | | '_ \ / _ \/ __|
+#    | (_| | (__| |_| | (_) | | | | | |_| |_| | |_) |  __/\__ \
+#     \__,_|\___|\__|_|\___/|_| |_|  \__|\__, | .__/ \___||___/
+#                                        |___/|_|              
+
+objectType default ("default")
+{
+}
+
+objectType lookAt ("Look at")
+{
+}
+
+objectType talkTo ("Talk to")
+{
+}
+
+objectType takeIt ("Take")
+{
+}
+
+objectType getIcon ("")
+{
+    # called as an action on inventory items to get the item icon
+}
+
+objectType waitIcon ("")
+{
+    # used as a Character to show the wait icon on screen
+}
+
+
+#              _ _       
+#     _____  _(_) |_ ___ 
+#    / _ \ \/ / | __/ __|
+#   |  __/>  <| | |_\__ \
+#    \___/_/\_\_|\__|___/
+#
+# Add regions to the stage edges that triggers warping to other rooms.
+
+# Points to the rooms when exiting the stage.
+var messLeftExitRoom;
+var messRightExitRoom;
+var messTopExitRoom;
+var messBottomExitRoom;
+
+
+objectType messLeftExitRegion ("")
+{
+    event default
+    {
+        if (messLeftExitRoom)
+            messWarp(messLeftExitRoom);
+    }
+}
+
+
+objectType messRightExitRegion ("")
+{
+    event default
+    {
+        if (messRightExitRoom)
+            messWarp(messRightExitRoom);
+    }
+}
+
+
+objectType messTopExitRegion ("")
+{
+    event default
+    {
+        if (messTopExitRoom)
+            messWarp(messTopExitRoom);
+    }
+}
+
+
+objectType messBottomExitRegion ("")
+{
+    event default
+    {
+        if (messBottomExitRoom)
+            messWarp(messBottomExitRoom);
+    }
+}

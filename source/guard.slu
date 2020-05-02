@@ -1,0 +1,272 @@
+objectType guard ("Guard")
+{
+    walkSpeed 1;
+    speechColour 64, 64, 255;
+   
+    event cementDust
+    {
+        if (currentRoom == cellRoom)
+        {
+            moveCharacter (ego, 58, 54);
+            turnCharacter (ego, WEST);
+            throwDustIntoEyes ();
+            messDrop (cementDust);
+        }
+    }
+    
+    event knockoutGas
+    {
+        popKnockoutGas ();
+    }
+}
+
+objectType otherGuard ("Guard")
+{
+    walkSpeed 1;
+    speechColour 64, 64, 255;
+
+    event knockoutGas
+    {
+        popKnockoutGas ();
+    }
+}
+
+sub guardAnim()
+{
+    # Character sprite sheet order is:
+    #   EAST Standing, Walking, Talking.
+    #   Repeat SOUTH, NORTH.
+    #   (West is flipped via negative indices)
+    #
+    # Costume animations format:
+    # Stand S,W,N,E (x4 animations)
+    # Walk S,W,N,E
+    # Talk S,W,N,E
+    
+    # blink periodically
+    var stand_E = anim('data/guard.duc', 
+        wait(2, 100), 
+        wait(1, 2), 
+        wait(2, 200), 
+        wait(1, 2), 
+        wait(2, 3), 
+        wait(1, 2)
+        );
+    
+    var walk_E = anim('data/guard.duc', 
+        wait(3, 3),
+        wait(4, 3),
+        wait(5, 3),
+        wait(4, 3)
+        );
+    
+    var talk_E = anim('data/guard.duc', 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(7, 5)
+        );
+    
+    var stand_W = anim('data/guard.duc', 
+        wait(-2, 100), 
+        wait(-1, 2), 
+        wait(-2, 200), 
+        wait(-1, 2), 
+        wait(-2, 3), 
+        wait(-1, 2)        );
+    
+    var walk_W = anim('data/guard.duc', 
+        wait(-3, 3),
+        wait(-4, 3),
+        wait(-5, 3),
+        wait(-4, 3)
+        );
+
+    var talk_W = anim('data/guard.duc', 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-7, 5)
+        );
+    
+    var stand_S = anim('data/guard.duc', 
+        wait(10, 100), 
+        wait(9, 2), 
+        wait(10, 200), 
+        wait(9, 2), 
+        wait(10, 3), 
+        wait(9, 2)
+        );
+
+    var walk_S = anim('data/guard.duc', 
+        wait(10, 3), 
+        wait(11, 3), 
+        wait(12, 3), 
+        wait(13, 3)
+        );
+
+    var talk_S = anim('data/guard.duc', 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(15, 5)
+        );
+    
+    var stand_N = anim('data/guard.duc', 17);
+    
+    var walk_N = anim('data/guard.duc', 
+        wait(17, 3),
+        wait(18, 3), 
+        wait(19, 3), 
+        wait(20, 3)
+        );
+
+    return costume(
+    stand_S,
+    stand_W,
+    stand_N,
+    stand_E,
+    walk_S,
+    walk_W,
+    walk_N,
+    walk_E,
+    talk_S,
+    talk_W,
+    talk_S,
+    talk_E
+    );
+}
+
+sub guardOutAnim ()
+{
+    return anim ('data/guard.duc', 0);
+}
+
+sub guardRubEyesAnim ()
+{
+    var t = 3;
+    return anim ('data/guard.duc',
+        wait(21, t), wait(22, t), wait(23, t), wait(24, t), wait(25, t),
+        wait(24, t), wait(25, t), wait(24, t), wait(25, t),
+        wait(24, t), wait(25, t),
+        wait(23, t), wait(22, t), wait(21, t)
+        );
+}
+
+
+sub guardHandsUpAnim()
+{
+    # 26 - 1 = [25]
+    
+    # blink periodically
+    var stand_E = anim('data/guard.duc', 
+        wait(27, 100), 
+        wait(26, 2), 
+        wait(27, 200), 
+        wait(26, 2), 
+        wait(27, 3), 
+        wait(26, 2)
+        );
+    
+    var walk_E = anim('data/guard.duc', 
+        wait(28, 3),
+        wait(29, 3),
+        wait(30, 3),
+        wait(29, 3)
+        );
+    
+    var talk_E = anim('data/guard.duc', 
+        wait(31, 5), 
+        wait(33, 5), 
+        wait(31, 5), 
+        wait(33, 5), 
+        wait(31, 5), 
+        wait(33, 5), 
+        wait(32, 5)
+        );
+    
+    var stand_W = anim('data/guard.duc', 
+        wait(-27, 100), 
+        wait(-26, 2), 
+        wait(-27, 200), 
+        wait(-26, 2), 
+        wait(-27, 3), 
+        wait(-26, 2)
+        );
+    
+    var walk_W = anim('data/guard.duc', 
+        wait(-28, 3),
+        wait(-29, 3),
+        wait(-30, 3),
+        wait(-29, 3)
+        );
+
+    var talk_W = anim('data/guard.duc', 
+        wait(-31, 5), 
+        wait(-33, 5), 
+        wait(-31, 5), 
+        wait(-33, 5), 
+        wait(-31, 5), 
+        wait(-33, 5), 
+        wait(-32, 5)
+        );
+    
+    var stand_S = anim('data/guard.duc', 
+        wait(10, 100), 
+        wait(9, 2), 
+        wait(10, 200), 
+        wait(9, 2), 
+        wait(10, 3), 
+        wait(9, 2)
+        );
+
+    var walk_S = anim('data/guard.duc', 
+        wait(10, 3), 
+        wait(11, 3), 
+        wait(12, 3), 
+        wait(13, 3)
+        );
+
+    var talk_S = anim('data/guard.duc', 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(15, 5)
+        );
+    
+    var stand_N = anim('data/guard.duc', 17);
+    
+    var walk_N = anim('data/guard.duc', 
+        wait(17, 3),
+        wait(18, 3), 
+        wait(19, 3), 
+        wait(20, 3)
+        );
+
+    return costume(
+    stand_S,
+    stand_W,
+    stand_N,
+    stand_E,
+    walk_S,
+    walk_W,
+    walk_N,
+    walk_E,
+    talk_S,
+    talk_W,
+    talk_S,
+    talk_E
+    );
+}

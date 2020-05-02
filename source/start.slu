@@ -1,0 +1,36 @@
+sub startRoom()
+{
+    setDefaultMusicVolume (255);
+    startMusic ('data/bu-a-lively-cheese.it', 0, 0);
+    
+    messShow ();
+    playSound('data/extraextra.wav');
+    addOverlay ('data/newspaper12.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper11.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper10.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper9.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper8.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper7.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper6.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper5.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper4.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper3.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper-start.png', 0, 0);
+    onLeftMouse (startClick);
+}
+
+sub startClick ()
+{
+    onLeftMouse (messMouseLeftClick);
+    messWarp (cellRoom);
+}

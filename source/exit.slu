@@ -1,0 +1,5 @@
+sub exitRoom ()
+{
+    addOverlay ('data/end.png', 0, 0);
+    messShow ();
+}

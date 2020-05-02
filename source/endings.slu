@@ -1,0 +1,38 @@
+sub failedRoom ()
+{
+    messShow ();
+    playSound('data/extraextra.wav');
+    addOverlay ('data/newspaper12.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper11.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper10.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper9.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper8.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper7.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper6.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper5.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper4.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper3.png', 0, 0);
+    pause (1);
+    addOverlay ('data/newspaper-failed.png', 0, 0);
+    onLeftMouse (endClick1);
+}
+
+sub endClick1 ()
+{
+    addOverlay ('data/end-thanks.png', 0, 0);
+    onLeftMouse (endClick2);
+}
+
+sub endClick2 ()
+{
+    quitGame ();
+}

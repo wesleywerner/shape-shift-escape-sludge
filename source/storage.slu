@@ -1,0 +1,88 @@
+var firstStoreVisit = TRUE;
+
+sub storeRoom ()
+{
+    messBusy ();
+    setZBuffer ('data/storage.zbu');
+    setFloor ('data/storage2.flo');
+    addOverlay ('data/storage1.png', 0, 0);
+    addScreenRegion (storageExit, 32, 59, 70, 80, 0, 0, NORTH);
+    addCharacter (ego, 50, 73, egoShapeAnim() );
+    addCharacter (janitor, 67, 38, janitorAnim() );
+    messShowInventory ();
+    messShow ();
+    moveCharacter (ego, 50, 54);
+    moveCharacter (ego, 60, 46);
+    turnCharacter (ego, EAST);
+    
+    if (firstStoreVisit && scientistReceivedReport)
+    {
+        firstStoreVisit = FALSE;
+        think (ego, "Hey, there are no cameras here");
+        think (ego, "I can shape shift!");
+    }
+    
+    if (scientistReceivedReport)
+    {
+        addCharacter (shapeShiftEgo, 110, 30, anim ('data/green-monster.duc', 4) );
+        setCharacterExtra (shapeShiftEgo, RECTANGULAR);
+        addCharacter (shapeShiftScientist, 130, 30, anim ('data/scientist.duc', 4) );
+        setCharacterExtra (shapeShiftScientist, RECTANGULAR);
+        addCharacter (shapeShiftGuard, 150, 30, anim ('data/guard.duc', 4) );
+        setCharacterExtra (shapeShiftGuard, RECTANGULAR);
+    }
+    
+    messResume ();
+}
+
+objectType shapeShiftEgo ("Shape-shift Yourself")
+{
+    event lookAt
+    {
+        egoShiftToMonster ();
+    }
+}
+
+objectType shapeShiftScientist ("Shape-shift Scientist")
+{
+    event lookAt
+    {
+        egoShiftToMonster ();
+        egoShiftToScientist ();
+    }
+}
+
+objectType shapeShiftGuard ("Shape-shift Guard")
+{
+    event lookAt
+    {
+        egoShiftToMonster ();
+        egoShiftToGuard ();
+    }
+}
+
+objectType janitor ("Tired Janitor")
+{
+
+}
+
+sub janitorAnim ()
+{
+    return anim ('data/janitor.duc', 
+        wait(0, 20), wait(1, 30)
+        );
+}
+
+objectType storageExit ("Hallway")
+{
+    event default
+    {
+        if (egoShape == "EGO")
+        {
+            think (ego, "I can't go out there looking like this!");
+            return;
+        }
+        moveCharacter (ego, 50, 73);
+        messWarp (hallway);
+    }
+}

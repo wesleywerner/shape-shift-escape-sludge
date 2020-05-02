@@ -1,0 +1,201 @@
+var guardsKO = FALSE;
+
+sub securityRoom ()
+{
+
+    messBusy ();
+    setZBuffer ('data/security.zbu');
+    setFloor ('data/security2.flo');
+    addOverlay ('data/security1.png', 0, 0);
+    addScreenRegion (securityExit, 88, 79, 122, 95, 0, 0, NORTH);
+    
+    # key
+    addCharacter (key, 128, 44, anim ('data/key.duc', 0) );
+    setCharacterExtra (key, RECTANGULAR);
+    
+    # coffee
+    if (scientistReceivedReport)
+    {
+        addCharacter (coffeeSpill, 133, 70, coffeeSpillAnim() );
+        addCharacter (coffee, 137, 55, anim ('data/coffee.duc', wait(0, 6), wait(1, 6)) );
+        setCharacterExtra (coffee, RECTANGULAR);
+    
+    }
+    else
+    {
+        addCharacter (coffee, 137, 55, anim ('data/coffee.duc', wait(0, 6), wait(1, 6)) );
+        setCharacterExtra (coffee, RECTANGULAR);
+    }
+    
+    addCharacter (guard, 107, 46, guardAnim() );
+    turnCharacter (guard, EAST);
+    addCharacter (otherGuard, 120, 61, guardAnim() );
+    turnCharacter (otherGuard, EAST);
+    addCharacter (ego, 103, 91, egoShapeAnim() );
+    messShowInventory ();
+    messShow ();
+    
+    moveCharacter (ego, 103, 69);
+    
+    messResume ();
+    
+    spawnSub (moveGuardInSecurityRoom);
+    spawnSub (guardSaysRandomThing);
+
+}
+
+objectType coffee ("coffee")
+{
+    event lookAt
+    {
+        say (otherGuard, "Hands off!");
+    }
+}
+
+objectType coffeeSpill ("A big mess")
+{
+
+}
+
+sub coffeeSpillAnim ()
+{
+    var t = 4;
+    return anim ('data/coffee-spill.duc', 
+    wait(0, t), 
+    wait(1, t),
+    wait(2, t),
+    wait(3, t),
+    wait(4, t),
+    wait(5, t),
+    wait(6, t),
+    wait(7, t)
+    );
+}
+
+objectType key ("Key")
+{
+    event getIcon
+    {
+        InventoryIcon = anim ('data/key.duc', 1);
+    }
+    
+    event takeIt
+    {
+        if (guardsKO)
+        {
+            moveToCharacter (ego, key);
+            messTake (key);
+            egoHasKey = TRUE;
+        }
+        else
+        {
+            think (ego, "I can't. The cameras are watching!");
+        }
+    }
+    
+}
+
+sub moveGuardInSecurityRoom ()
+{
+    while (currentRoom == securityRoom && guardsKO == FALSE)
+    {
+        moveCharacter (guard, 90, 40);
+        turnCharacter (guard, NORTH);
+        pause (80);
+        if (guardsKO == FALSE)
+        {
+            moveCharacter (guard, 107, 46);
+            turnCharacter (guard, EAST);
+            pause (200);
+        }
+    }
+}
+
+sub guardSaysRandomThing ()
+{
+    while (currentRoom == securityRoom && guardsKO == FALSE)
+    {
+        pause (10);
+        if (random (100) < 5)
+        {
+            var words = pickOne (
+                "Did you submit to Ludum Dare?",
+                "Looking good", 
+                "Nothing to report", 
+                "How about that game last night",
+                "Simant is still a good game",
+                "I sure love coffee",
+                "Gosh this is exciting",
+                "I wonder what this button does",
+                "Best job in the world"
+                );
+            
+            if (scientistReceivedReport)
+            {
+                words = pickOne (
+                    "What a mess", 
+                    "Where is that janitor", 
+                    "I need another coffee", 
+                    "Damnit", 
+                    "Stupid opposing thumb"
+                    );
+            }
+            
+            say (otherGuard, words);
+        }
+    }
+}
+
+objectType securityExit ("Hallway")
+{
+    event default
+    {
+        moveCharacter (ego, 103, 91);
+        messWarp (hallway);
+    }
+}
+
+sub popKnockoutGas ()
+{
+    guardsKO = TRUE;
+    messDrop (knockoutGas);
+    playSound ('data/knockout-gas.wav');
+    addOverlay ('data/knockout-gas-pop1.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop2.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop3.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop4.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop5.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop6.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop7.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop8.png', 88, 30);
+    setCostume (guard, guardOutAnim () );
+    setCostume (otherGuard, guardOutAnim () );
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop9.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop10.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop11.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+    addOverlay ('data/knockout-gas-pop12.png', 88, 30);
+    pause (4);
+    addOverlay ('data/security1.png', 0, 0);
+}

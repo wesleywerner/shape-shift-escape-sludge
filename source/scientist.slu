@@ -1,0 +1,198 @@
+var scientistReceivedReport = FALSE;
+
+objectType scientistOne ("Scientist")
+{
+    walkSpeed 1;
+    speechColour 255, 255, 255;
+}
+
+objectType scientistTwo ("Scientist")
+{
+    walkSpeed 1;
+    speechColour 255, 255, 255;
+    
+    event talkTo
+    {
+        messBusy ();
+        if (egoShape == "GUARD")
+        {
+            if (scientistReceivedReport)
+            {
+                think (ego, "Best I don't attract attention.");
+            }
+            else
+            {
+                scientistReceivedReport = TRUE;
+                say (ego, "Scientist Sir...");
+                say (scientistTwo, "What?");
+                say (ego, "Err, reporting a near prisoner escape.");
+                say (scientistTwo, "Very well.");
+                animate (scientistTwo, scientistWorkAnim() );
+            }
+        }
+        messResume ();
+    }
+}
+
+objectType scientistThree ("Scientist")
+{
+    walkSpeed 1;
+    speechColour 255, 255, 255;
+}
+
+sub scientistAnim ()
+{
+
+    # Character sprite sheet order is:
+    #   EAST Standing, Walking, Talking.
+    #   Repeat SOUTH, NORTH.
+    #   (West is flipped via negative indices)
+    #
+    # Costume animations format:
+    # Stand S,W,N,E (x4 animations)
+    # Walk S,W,N,E
+    # Talk S,W,N,E
+    
+    # blink periodically
+    var stand_E = anim('data/scientist.duc', 
+        wait(2, 100), 
+        wait(1, 2), 
+        wait(2, 200), 
+        wait(1, 2), 
+        wait(2, 3), 
+        wait(1, 2)
+        );
+    
+    var walk_E = anim('data/scientist.duc', 
+        wait(3, 3),
+        wait(4, 3),
+        wait(5, 3),
+        wait(4, 3)
+        );
+    
+    var talk_E = anim('data/scientist.duc', 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(7, 5)
+        );
+    
+    var stand_W = anim('data/scientist.duc', 
+        wait(-2, 100), 
+        wait(-1, 2), 
+        wait(-2, 200), 
+        wait(-1, 2), 
+        wait(-2, 3), 
+        wait(-1, 2)        );
+    
+    var walk_W = anim('data/scientist.duc', 
+        wait(-3, 3),
+        wait(-4, 3),
+        wait(-5, 3),
+        wait(-4, 3)
+        );
+
+    var talk_W = anim('data/scientist.duc', 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-7, 5)
+        );
+    
+    var stand_S = anim('data/scientist.duc', 
+        wait(10, 100), 
+        wait(9, 2), 
+        wait(10, 200), 
+        wait(9, 2), 
+        wait(10, 3), 
+        wait(9, 2)
+        );
+
+    var walk_S = anim('data/scientist.duc', 
+        wait(10, 3), 
+        wait(11, 3), 
+        wait(12, 3), 
+        wait(13, 3)
+        );
+
+    var talk_S = anim('data/scientist.duc', 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(15, 5)
+        );
+    
+    var stand_N = anim('data/scientist.duc', 17);
+    
+    var walk_N = anim('data/scientist.duc', 
+        wait(17, 3),
+        wait(18, 3), 
+        wait(19, 3), 
+        wait(20, 3)
+        );
+
+    return costume(
+    stand_S,
+    stand_W,
+    stand_N,
+    stand_E,
+    walk_S,
+    walk_W,
+    walk_N,
+    walk_E,
+    talk_S,
+    talk_W,
+    talk_S,
+    talk_E
+    );
+}
+
+sub scientistWorkAnim ()
+{
+    var n = 3;
+    return anim('data/scientist.duc',
+    
+        wait(21, n),
+        wait(22, n),
+        wait(23, n),
+        wait(24, n),
+        wait(25, n),
+        wait(26, n),
+        wait(27, n),
+        wait(28, n),
+        wait(29, n),
+        wait(30, n),
+        wait(31, n),
+        wait(32, 10),
+
+        wait(29, n),       # reverse
+        wait(29, n),
+        wait(27, n),
+        wait(26, n),
+        wait(25, n),
+        wait(24, n),
+        wait(23, n),
+        wait(22, n),
+        wait(21, n),
+        
+        wait(34, 15),   # look around
+        wait(21, 5),
+        wait(35, 15),
+        wait(21, 5),
+        wait(34, 15),
+        wait(21, 5),
+        wait(35, 15),
+        wait(21, 5),
+        wait(34, 15),
+        wait(21, 5)
+        );
+}

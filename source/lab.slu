@@ -1,0 +1,120 @@
+var takenKnockoutGas = FALSE;
+
+sub labRoom ()
+{
+    addOverlay ('data/lab4.png', 0, 0);
+    setFloor ('data/lab2.flo');
+    setZBuffer ('data/lab.zbu');
+    addScreenRegion (labExit, 1, 34, 23, 52, 0, 0, NORTH);
+
+    # Equipment
+    addCharacter (labEquipment, 10, 67, equipmentAnim() );
+    setCharacterExtra (labEquipment, NOZBUFFER);
+    
+    # knockout gas
+    if (takenKnockoutGas == FALSE)
+    {
+        addCharacter (knockoutGas, 78, 28, anim ('data/knockout-gas.duc', 0) );
+    }
+
+    # scientist one
+    addCharacter (scientistOne, 63, 44, scientistAnim() );
+    
+    # scientist two
+    addCharacter (scientistTwo, 93, 44, scientistAnim() );
+    
+    # scientist three
+    addCharacter (scientistThree, 124, 44, scientistAnim() );
+    
+    # Hero
+    addCharacter (ego, 14, 46, egoShapeAnim() );
+    moveCharacter (ego, 36, 46);
+
+    messShowInventory ();
+    messShow ();
+    messResume ();
+
+    animate (scientistOne, scientistWorkAnim() );
+    pause (10);
+    animate (scientistThree, scientistWorkAnim() );
+    pause (10);
+    animate (scientistTwo, scientistWorkAnim() );
+    
+    spawnSub (moveScientistOne);
+    spawnSub (moveScientistThree);
+}
+
+objectType labExit ("Hallway")
+{
+    event default
+    {
+        moveCharacter (ego, 14, 46);
+        messWarp (hallway);
+    }
+}
+
+objectType knockoutGas ("Knockout Gas")
+{
+    event getIcon
+    {
+        InventoryIcon = anim ('data/knockout-gas.duc', 0);
+    }
+
+    event takeIt
+    {
+        if (egoShape == "GUARD")
+        {
+            say (scientistTwo, "Don't touch that! It is a knockout gas.");
+            say (scientistTwo, "If it drops we will all go unconscious!");
+        }
+        if (egoShape == "SCIENTIST")
+        {
+            moveToCharacter (ego, knockoutGas);
+            takenKnockoutGas = TRUE;
+            messTake (knockoutGas);
+        }
+    }
+}
+
+objectType labEquipment ("Lab Equipment")
+{
+
+}
+
+sub equipmentAnim ()
+{
+    var t = 6;
+    return anim ('data/lab-equipment.duc', 
+        wait(0, t), wait(1, t), wait(2, t), wait(3, t));
+}
+
+sub moveScientistOne ()
+{
+    while (currentRoom == labRoom)
+    {
+        pause (200);
+        moveCharacter (scientistOne, 46, 60);
+        pause (50);
+        say (scientistOne, "Interesting...");
+        moveCharacter (scientistOne, 63, 44);
+        turnCharacter (scientistOne, SOUTH);
+        animate (scientistOne, scientistWorkAnim() );
+    }
+}
+
+sub moveScientistThree ()
+{
+    while (currentRoom == labRoom)
+    {
+        moveCharacter (scientistThree, 113, 60);
+        pause (45);
+        say (scientistThree, "Curious...");
+        moveCharacter (scientistThree, 60, 60);
+        turnCharacter (scientistThree, SOUTH);
+        pause (75);
+        moveCharacter (scientistThree, 124, 44);
+        turnCharacter (scientistThree, SOUTH);
+        animate (scientistThree, scientistWorkAnim() );
+        pause (450);
+    }
+}

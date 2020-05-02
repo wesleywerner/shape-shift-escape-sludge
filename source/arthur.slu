@@ -1,0 +1,88 @@
+objectType arthur("Arthur")
+{
+    walkSpeed 2;
+    speechColour 128, 128, 128;
+    
+    event default
+    {
+        say(arthur, "arf!");
+    }
+}
+
+sub arthurAnim()
+{
+    var n = 5;
+    
+    var stand_E = anim('data/arthur.duc',
+        wait(2, n), wait(3, n), wait(4, n), wait(3, n),
+        wait(2, n), wait(3, n), wait(4, n), wait(3, n),
+        wait(2, n), wait(3, n), wait(4, n), wait(3, n),
+        # blink
+        wait(1, n), wait(3, n), wait(4, n), wait(3, n)
+        );
+
+    var stand_W = anim('data/arthur.duc',
+        wait(-2, n), wait(-3, n), wait(-4, n), wait(-3, n),
+        wait(-2, n), wait(-3, n), wait(-4, n), wait(-3, n),
+        wait(-2, n), wait(-3, n), wait(-4, n), wait(-3, n),
+        # blink
+        wait(-1, n), wait(-3, n), wait(-4, n), wait(-3, n)
+        );
+
+    var stand_N = stand_E;
+    var stand_S = stand_E;
+    
+    n = 3;
+    var run_E = anim('data/arthur.duc', 
+        wait(5, n), 
+        wait(6, n), 
+        wait(7, n), 
+        wait(8, n),
+        wait(9, n)
+        );
+        
+    var run_W = anim('data/arthur.duc', 
+        wait(-5, n), 
+        wait(-6, n), 
+        wait(-7, n), 
+        wait(-8, n),
+        wait(-9, n)
+        );
+    
+    var run_N = run_E;
+    var run_S = run_E;
+    
+    n = 5;
+    var talk_E = anim('data/arthur.duc',
+        wait(10, n),
+        wait(11, n),
+        wait(12, n),
+        wait(11, n)
+        );
+    
+    var talk_W = anim('data/arthur.duc',
+        wait(-10, n),
+        wait(-11, n),
+        wait(-12, n),
+        wait(-11, n)
+        );
+    
+    var talk_N = talk_E;
+    var talk_S = talk_E;
+    
+    return costume(
+    stand_S,
+    stand_W,
+    stand_N,
+    stand_E,
+    run_S,
+    run_W,
+    run_N,
+    run_E,
+    talk_S,
+    talk_W,
+    talk_N,
+    talk_E
+    );
+    
+}

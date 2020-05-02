@@ -1,0 +1,289 @@
+var egoShape = "EGO";
+var egoHasKey = FALSE;
+
+objectType ego ("Monster")
+{
+    walkSpeed 1;
+    speechColour 64, 255, 64;
+}
+
+sub egoShapeAnim ()
+{
+    if (egoShape == "GUARD")
+        return guardAnim ();
+    if (egoShape == "SCIENTIST")
+        return scientistAnim ();
+    return egoAnim ();
+}
+
+sub egoAnim()
+{
+    # Character sprite sheet order is:
+    #   EAST Standing, Walking, Talking.
+    #   Repeat SOUTH, NORTH.
+    #   (West is flipped via negative indices)
+    #
+    # Costume animations format:
+    # Stand S,W,N,E (x4 animations)
+    # Walk S,W,N,E
+    # Talk S,W,N,E
+    
+    # blink periodically
+    var stand_E = anim('data/green-monster.duc', 
+        wait(2, 100), 
+        wait(1, 2), 
+        wait(2, 200), 
+        wait(1, 2), 
+        wait(2, 3), 
+        wait(1, 2)
+        );
+    
+    var walk_E = anim('data/green-monster.duc', 
+        wait(3, 3),
+        wait(4, 3),
+        wait(5, 3),
+        wait(4, 3)
+        );
+    
+    var talk_E = anim('data/green-monster.duc', 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(6, 5), 
+        wait(8, 5), 
+        wait(7, 5)
+        );
+    
+    var stand_W = anim('data/green-monster.duc', 
+        wait(-2, 100), 
+        wait(-1, 2), 
+        wait(-2, 200), 
+        wait(-1, 2), 
+        wait(-2, 3), 
+        wait(-1, 2)        );
+    
+    var walk_W = anim('data/green-monster.duc', 
+        wait(-3, 3),
+        wait(-4, 3),
+        wait(-5, 3),
+        wait(-4, 3)
+        );
+
+    var talk_W = anim('data/green-monster.duc', 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-6, 5), 
+        wait(-8, 5), 
+        wait(-7, 5)
+        );
+    
+    var stand_S = anim('data/green-monster.duc', 
+        wait(10, 100), 
+        wait(9, 2), 
+        wait(10, 200), 
+        wait(9, 2), 
+        wait(10, 3), 
+        wait(9, 2)
+        );
+
+    var walk_S = anim('data/green-monster.duc', 
+        wait(10, 3), 
+        wait(11, 3), 
+        wait(12, 3), 
+        wait(13, 3)
+        );
+
+    var talk_S = anim('data/green-monster.duc', 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(14, 5), 
+        wait(16, 5), 
+        wait(15, 5)
+        );
+    
+    var stand_N = anim('data/green-monster.duc', 17);
+    
+    var walk_N = anim('data/green-monster.duc', 
+        wait(17, 3),
+        wait(18, 3), 
+        wait(19, 3), 
+        wait(20, 3)
+        );
+
+    return costume(
+    stand_S,
+    stand_W,
+    stand_N,
+    stand_E,
+    walk_S,
+    walk_W,
+    walk_N,
+    walk_E,
+    talk_S,
+    talk_W,
+    talk_S,
+    talk_E
+    );
+}
+
+sub egoSpoonDigAnim ()
+{
+    var t = 3;
+    return anim('data/green-monster.duc', 
+        wait(21, t), wait(22, t),
+        'data/dig.wav',
+        wait(23, t), wait(24, t)
+    );
+}
+
+sub egoThrowDustAnim ()
+{
+    var t = 1;
+    return anim('data/green-monster.duc', 
+        'data/dust.wav',
+        wait(-25, t), wait(-26, t), wait(-27, t), wait(-28, t),
+        wait(-29, t), wait(-30, t), wait(-31, t), wait(-32, t),
+        wait(-33, t), wait(-34, t), wait(-35, t), wait(-36, t)
+    );
+
+}
+
+#                              _            
+#    _ __ ___   ___  _ __  ___| |_ ___ _ __ 
+#   | '_ ` _ \ / _ \| '_ \/ __| __/ _ \ '__|
+#   | | | | | | (_) | | | \__ \ ||  __/ |   
+#   |_| |_| |_|\___/|_| |_|___/\__\___|_|   
+#   
+
+sub egoShiftToMonster ()
+{
+    if (egoShape == "GUARD")
+    {
+        pause (animate (ego, egoShiftFromGuardAnim () ));
+    }
+    if (egoShape == "SCIENTIST")
+    {
+        pause (animate (ego, egoShiftFromScientistAnim () ));
+    }
+    
+    setCostume (ego, egoAnim() );
+    egoShape = "EGO";
+}
+
+#                              _ 
+#     __ _ _   _  __ _ _ __ __| |
+#    / _` | | | |/ _` | '__/ _` |
+#   | (_| | |_| | (_| | | | (_| |
+#    \__, |\__,_|\__,_|_|  \__,_|
+#    |___/                       
+#   
+
+sub egoShiftToGuard ()
+{
+    pause (animate (ego, egoShiftToGuardAnim() ));
+    setCostume (ego, guardAnim() );
+    egoShape = "GUARD";
+}
+
+sub egoShiftToGuardAnim ()
+{
+    var t = 3;
+    return anim('data/green-monster.duc', 
+        'data/shapeshift.wav',
+        wait(-37, t), wait(-38, t), wait(-39, t), wait(-40, t),
+        wait(-40, t), wait(-41, t), wait(-42, t), wait(-43, t),
+        wait(-44, t), wait(-45, t), wait(-46, t), wait(-47, t),
+        wait(-48, t)
+    );
+}
+
+sub egoShiftFromGuardAnim ()
+{
+    var t = 3;
+    return anim('data/green-monster.duc', 
+        'data/shapeshift.wav',
+        wait(-48, t),
+        wait(-47, t),
+        wait(-46, t), 
+        wait(-45, t), 
+        wait(-44, t), 
+        wait(-43, t),
+        wait(-42, t), 
+        wait(-41, t), 
+        wait(-40, t), 
+        wait(-40, t),
+        wait(-39, t), 
+        wait(-38, t), 
+        wait(-37, t)
+    );
+}
+
+#             _            _   _     _   
+#    ___  ___(_) ___ _ __ | |_(_)___| |_ 
+#   / __|/ __| |/ _ \ '_ \| __| / __| __|
+#   \__ \ (__| |  __/ | | | |_| \__ \ |_ 
+#   |___/\___|_|\___|_| |_|\__|_|___/\__|
+#   
+
+sub egoShiftToScientist ()
+{
+    pause (animate (ego, egoShiftToScientistAnim() ));
+    setCostume (ego, scientistAnim() );
+    egoShape = "SCIENTIST";
+}
+
+sub egoShiftToScientistAnim ()
+{
+    var t = 3;
+    return anim('data/scientist-shift.duc',
+        'data/shapeshift.wav',
+        wait(00, t),
+        wait(01, t),
+        wait(02, t), 
+        wait(03, t), 
+        wait(04, t), 
+        wait(05, t),
+        wait(06, t), 
+        wait(07, t), 
+        wait(08, t), 
+        wait(09, t),
+        wait(10, t), 
+        wait(11, t), 
+        wait(12, t),
+        wait(13, t),
+        wait(14, t),
+        wait(15, t),
+        wait(16, t)
+    );
+}
+
+
+sub egoShiftFromScientistAnim ()
+{
+    var t = 3;
+    return anim('data/scientist-shift.duc',
+        'data/shapeshift.wav',
+        wait(16, t),
+        wait(15, t),
+        wait(14, t),
+        wait(13, t),
+        wait(12, t),
+        wait(11, t), 
+        wait(10, t), 
+        wait(09, t),
+        wait(08, t), 
+        wait(07, t), 
+        wait(06, t), 
+        wait(05, t),
+        wait(04, t), 
+        wait(03, t), 
+        wait(02, t), 
+        wait(01, t),
+        wait(00, t)
+    );
+}
