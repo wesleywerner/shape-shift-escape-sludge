@@ -1,4 +1,4 @@
-# LD33 You are the monster
+# LD33 You are the monster - Functional Specification
 
 You are a changeling monster locked up in a lab. you must escape!
 
@@ -76,3 +76,20 @@ Tasks:
 + Enter storage, shift to a guard.
 + Enter security, use knockout gas. Take a security pass.
 + Exit hallway on the left. Use security pass. Done.
+
+# Post Comp Fixes
+
+* The coffee cup falls sideways when spilled, and the security guard no longer says "hands off" when you try to take it (even when he was knocked out by the gas).
+* Fixed the shape-shift animation glitch.
+* Prevent guards and scientists from saying something random when there are words on screen.
+* Lower music volume. It overpowered the game sounds.
+* Loop game music when it ends, instead of restarting the music when re-entering the hallway.
+* Better placement of the lab exit hotspot.
+* After the scientist tells you not to touch the knockout gas, resume his working animation.
+* Restart the game on fail, instead of exiting.
+
+Additions
+
+* Draw pictures on the security room tv's. Add descriptions for the tvâ€™s and bulletin board.
+* Replace the key with a security pass.
+* Add the level exit as a new room. The door requires a security pass.

@@ -18,6 +18,10 @@ $ sludge-engine --fullscreen --antialias=0 youarethemonster.slg
 
 Enjoy!
 
+# Changes
+
+See `source` for post-comp fixes and spoilers.
+
 ```
 Copyright 2015 Wesley Werner
 
